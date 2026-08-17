@@ -1,0 +1,5 @@
+step,action,column,affectedRows,before,after
+1,删除完全重复记录,,42,,
+2,统一空值编码,delivery_cost,10,N/A / - / NA,Missing
+3,标准化日期格式,date,486,Mixed date formats,YYYY-MM-DD
+4,统一城市名称,city,177,上海市,上海

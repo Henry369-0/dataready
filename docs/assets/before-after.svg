@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+<rect width="1200" height="420" rx="26" fill="#F7F9FC"/>
+<g font-family="Inter,Inter,Noto Sans CJK SC,Noto Sans,sans-serif">
+<text x="55" y="55" fill="#3978D7" font-size="13" font-weight="800" letter-spacing="2">BEFORE / AFTER</text>
+<text x="55" y="95" fill="#101828" font-size="28" font-weight="780">清洗之后，不只给你一个新文件。</text>
+<g transform="translate(55 135)"><rect width="460" height="225" rx="20" fill="#fff" stroke="#DDE4EE"/><text x="30" y="40" fill="#667085" font-size="13" font-weight="700">处理前</text><text x="30" y="112" fill="#101828" font-size="74" font-weight="800">77</text><text x="132" y="112" fill="#667085" font-size="16">/ 100 数据准备度</text><rect x="30" y="150" width="150" height="38" rx="10" fill="#FFF0F1"/><text x="50" y="175" fill="#C43C46" font-size="13" font-weight="700">1 个必须处理</text><rect x="194" y="150" width="150" height="38" rx="10" fill="#FFF6E7"/><text x="214" y="175" fill="#A3620C" font-size="13" font-weight="700">6 个建议检查</text></g>
+<path d="M550 247 H645" stroke="#9AA9BA" stroke-width="3"/><path d="m630 234 15 13-15 13" fill="none" stroke="#9AA9BA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(685 135)"><rect width="460" height="225" rx="20" fill="#fff" stroke="#CFE8DC"/><text x="30" y="40" fill="#667085" font-size="13" font-weight="700">处理后</text><text x="30" y="112" fill="#147D56" font-size="74" font-weight="800">85</text><text x="132" y="112" fill="#667085" font-size="16">/ 100 数据准备度</text><rect x="30" y="150" width="150" height="38" rx="10" fill="#EAF8F1"/><text x="50" y="175" fill="#147D56" font-size="13" font-weight="700">0 个必须处理</text><rect x="194" y="150" width="150" height="38" rx="10" fill="#F1F5F9"/><text x="214" y="175" fill="#52657C" font-size="13" font-weight="700">5 个建议检查</text></g>
+</g></svg>

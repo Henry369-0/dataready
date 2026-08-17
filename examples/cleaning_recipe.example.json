@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "generated_by": "DataReady",
+  "actions": [
+    {
+      "type": "remove_exact_duplicates",
+      "risk": "low"
+    },
+    {
+      "type": "replace_missing_tokens",
+      "risk": "low",
+      "column": "delivery_cost",
+      "tokens": ["N/A", "-", "NA"]
+    },
+    {
+      "type": "normalize_date",
+      "risk": "low",
+      "column": "date"
+    },
+    {
+      "type": "normalize_category",
+      "risk": "medium",
+      "column": "city",
+      "mapping": {
+        "上海市": "上海",
+        "Shanghai": "上海",
+        "上海 ": "上海"
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260">
+  <rect width="1200" height="260" rx="26" fill="#F7F9FC"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9AA9BA"/></marker>
+  </defs>
+  <g font-family="Inter,Inter,Noto Sans CJK SC,Noto Sans,sans-serif">
+    <text x="50" y="50" fill="#3978D7" font-size="13" font-weight="800" letter-spacing="2">DATAREADY WORKFLOW</text>
+    <g transform="translate(50 82)">
+      <g><rect width="170" height="118" rx="16" fill="#fff" stroke="#DDE4EE"/><circle cx="28" cy="28" r="13" fill="#EDF4FF"/><text x="28" y="33" text-anchor="middle" fill="#3978D7" font-size="12" font-weight="800">1</text><text x="22" y="69" fill="#101828" font-size="18" font-weight="750">上传数据</text><text x="22" y="94" fill="#667085" font-size="12">CSV / Excel</text></g>
+      <path d="M184 59 H226" stroke="#9AA9BA" stroke-width="2" marker-end="url(#a)"/>
+      <g transform="translate(240)"><rect width="170" height="118" rx="16" fill="#fff" stroke="#DDE4EE"/><circle cx="28" cy="28" r="13" fill="#EDF4FF"/><text x="28" y="33" text-anchor="middle" fill="#3978D7" font-size="12" font-weight="800">2</text><text x="22" y="69" fill="#101828" font-size="18" font-weight="750">自动体检</text><text x="22" y="94" fill="#667085" font-size="12">8 类质量检查</text></g>
+      <path d="M424 59 H466" stroke="#9AA9BA" stroke-width="2" marker-end="url(#a)"/>
+      <g transform="translate(480)"><rect width="170" height="118" rx="16" fill="#fff" stroke="#DDE4EE"/><circle cx="28" cy="28" r="13" fill="#EDF4FF"/><text x="28" y="33" text-anchor="middle" fill="#3978D7" font-size="12" font-weight="800">3</text><text x="22" y="69" fill="#101828" font-size="18" font-weight="750">清洗方案</text><text x="22" y="94" fill="#667085" font-size="12">建议 → 预览 → 确认</text></g>
+      <path d="M664 59 H706" stroke="#9AA9BA" stroke-width="2" marker-end="url(#a)"/>
+      <g transform="translate(720)"><rect width="170" height="118" rx="16" fill="#fff" stroke="#DDE4EE"/><circle cx="28" cy="28" r="13" fill="#EAF8F1"/><text x="28" y="33" text-anchor="middle" fill="#147D56" font-size="12" font-weight="800">4</text><text x="22" y="69" fill="#101828" font-size="18" font-weight="750">重新验证</text><text x="22" y="94" fill="#667085" font-size="12">Before → After</text></g>
+      <path d="M904 59 H946" stroke="#9AA9BA" stroke-width="2" marker-end="url(#a)"/>
+      <g transform="translate(960)"><rect width="170" height="118" rx="16" fill="#0B1220"/><circle cx="28" cy="28" r="13" fill="#19304E"/><text x="28" y="33" text-anchor="middle" fill="#9CC4FF" font-size="12" font-weight="800">5</text><text x="22" y="69" fill="#fff" font-size="18" font-weight="750">导出结果</text><text x="22" y="94" fill="#A8B5C5" font-size="12">Data · Log · Python · Recipe</text></g>
+    </g>
+  </g>
+</svg>
