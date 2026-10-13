@@ -711,10 +711,33 @@ function PreviewModal({ preview, onClose, onExecute, allowExecute, onAddAndClose
   allowExecute: boolean
   onAddAndClose: () => void
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    const oldOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const dialog = dialogRef.current!
+    dialog.querySelector<HTMLButtonElement>('button')?.focus()
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); onClose(); return }
+      if (event.key !== 'Tab') return
+      const controls = [...dialog.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), [tabindex="0"]')]
+      const first = controls[0]
+      const last = controls.at(-1)
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      document.body.style.overflow = oldOverflow
+      previous?.focus()
+    }
+  }, [onClose])
   return (
     <div className="modal-backdrop" onMouseDown={(e) => { if (e.currentTarget === e.target) onClose() }}>
-      <div className="modal">
-        <div className="modal-head"><div><span className="page-kicker">PREVIEW</span><h2>修改预览</h2><p>{preview.actions.length} 项操作 · 最多展示前 40 个单元格变化</p></div><button className="icon-button" onClick={onClose}><X size={19} /></button></div>
+      <div className="modal" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="preview-title">
+        <div className="modal-head"><div><span className="page-kicker">PREVIEW</span><h2 id="preview-title">修改预览</h2><p>{preview.actions.length} 项操作 · 最多展示前 40 个单元格变化</p></div><button className="icon-button" aria-label="关闭修改预览" onClick={onClose}><X size={19} /></button></div>
         <div className="modal-actions-summary">{preview.actions.map((a) => <span key={a.id}><Check size={13} /> {a.label}</span>)}</div>
         <div className="diff-table-wrap">
           {preview.changes.length ? <table className="data-table diff-table"><thead><tr><th>行</th><th>字段</th><th>Before</th><th>After</th></tr></thead><tbody>{preview.changes.map((c, i) => <tr key={`${c.row}-${c.column}-${i}`}><td>{c.row}</td><td><code>{c.column}</code></td><td><span className="diff-before">{c.before}</span></td><td><span className="diff-after">{c.after}</span></td></tr>)}</tbody></table> : <div className="no-diff"><Info size={18} /><p>这组操作不会直接改写单元格，或当前预览中没有可展示的值变化。它仍可能产生日志记录。</p></div>}

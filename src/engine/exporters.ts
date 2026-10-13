@@ -1,6 +1,7 @@
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 import type { ChangeLogEntry, CleaningAction, DataRow } from '../types'
+import { isDatetimeColumn, MISSING_TOKENS } from './utils'
 
 function saveBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
@@ -40,7 +41,7 @@ export function exportRecipe(actions: CleaningAction[], filename = 'cleaning_rec
 }
 
 function pyString(value: string): string {
-  return JSON.stringify(value).replace(/true|false|null/g, (m) => ({ true: 'True', false: 'False', null: 'None' }[m] ?? m))
+  return JSON.stringify(value)
 }
 
 export function buildPythonScript(actions: CleaningAction[]): string {
@@ -49,29 +50,98 @@ export function buildPythonScript(actions: CleaningAction[]): string {
     '# Reproducible cleaning script for the reviewed cleaning plan.',
     '',
     'import pandas as pd',
+    'import csv',
+    'import math',
+    'import re',
+    'from datetime import datetime, timedelta',
+    'from numbers import Real',
+    'from pathlib import Path',
     '',
     '# 修改为你的实际文件路径',
-    'df = pd.read_excel("input.xlsx")',
+    'input_path = Path("input.xlsx")',
+    'if input_path.suffix.lower() == ".csv":',
+    '    with input_path.open(encoding="utf-8-sig", newline="") as source:',
+    '        sample = source.read(65536)',
+    '    sample = "\\n".join(line for line in sample.splitlines() if line.strip())',
+    '    try:',
+    '        delimiter = csv.Sniffer().sniff(sample, delimiters=",;\\t|\\x1e\\x1f").delimiter',
+    '    except csv.Error:',
+    '        delimiter = ","',
+    '    df = pd.read_csv(input_path, sep=delimiter, dtype=str, keep_default_na=False, encoding="utf-8-sig")',
+    '    df = df.loc[df.apply(lambda row: any(str(value).strip() for value in row), axis=1)]',
+    'else:',
+    '    df = pd.read_excel(input_path, dtype=object, keep_default_na=False)',
+    '    df = df.where(df.ne(""), None)',
     '',
   ]
 
+  if (actions.some((a) => a.type === 'coerce_numeric' || a.type === 'normalize_date')) {
+    lines.push(`MISSING_TOKENS = set(${JSON.stringify([...MISSING_TOKENS])})`, '')
+  }
+  if (actions.some((a) => a.type === 'coerce_numeric')) {
+    lines.push(...String.raw`def reviewed_number(value):
+    if not isinstance(value, str) or value.strip().lower() in MISSING_TOKENS:
+        return value
+    cleaned = re.sub(r"[￥¥$,，%]", "", value.strip())
+    try:
+        if re.fullmatch(r"0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+", cleaned):
+            number = int(cleaned, 0)
+        elif re.fullmatch(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?", cleaned):
+            number = float(cleaned)
+        else:
+            return value
+        return number if math.isfinite(number) else value
+    except (ValueError, OverflowError):
+        return value
+`.split('\n'), '')
+  }
+  if (actions.some((a) => a.type === 'normalize_date')) {
+    lines.push(...String.raw`def reviewed_date(value, with_time=False):
+    if value is None or (isinstance(value, str) and value.strip().lower() in MISSING_TOKENS):
+        return value
+    try:
+        if isinstance(value, Real) and not isinstance(value, bool):
+            parsed = datetime(1899, 12, 30) + timedelta(days=float(value))
+        elif isinstance(value, datetime):
+            parsed = value
+        else:
+            raw = str(value).strip()
+            ymd = re.fullmatch(r"([0-9]{4})[/-]([0-9]{1,2})[/-]([0-9]{1,2})(?:[ T]([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?)?", raw)
+            dmy = re.fullmatch(r"([0-9]{1,2})[/-]([0-9]{1,2})[/-]([0-9]{4})", raw)
+            if re.fullmatch(r"[+-]?[0-9]+(?:\.[0-9]+)?", raw):
+                parsed = datetime(1899, 12, 30) + timedelta(days=float(raw))
+            elif ymd:
+                parsed = datetime(*[int(part or 0) for part in ymd.groups()])
+            elif dmy:
+                day, month, year = map(int, dmy.groups())
+                parsed = datetime(year, month, day)
+            else:
+                parsed = pd.to_datetime(raw, errors="raise").to_pydatetime()
+        if parsed.tzinfo is not None:
+            parsed = parsed.astimezone()
+        return parsed.strftime("%Y-%m-%d %H:%M:%S" if with_time else "%Y-%m-%d")
+    except (ValueError, TypeError, OverflowError):
+        return value
+`.split('\n'), '')
+  }
+
   actions.forEach((action, index) => {
-    lines.push(`# ${index + 1}. ${action.label}`)
+    lines.push(`# ${index + 1}. ${action.label.replace(/[\r\n]/g, ' ')}`)
     if (action.type === 'remove_exact_duplicates') {
       lines.push('df = df.drop_duplicates()')
     } else if (action.type === 'normalize_category' && action.column && action.mapping) {
       lines.push(`df[${pyString(action.column)}] = df[${pyString(action.column)}].replace(${JSON.stringify(action.mapping, null, 2)})`)
     } else if (action.type === 'replace_missing_tokens' && action.column && action.tokens) {
-      lines.push(`df[${pyString(action.column)}] = df[${pyString(action.column)}].replace(${JSON.stringify(action.tokens)}, pd.NA)`)
+      lines.push(`df[${pyString(action.column)}] = df[${pyString(action.column)}].map(lambda value: None if isinstance(value, str) and value.strip() in ${JSON.stringify(action.tokens)} else value)`)
     } else if (action.type === 'coerce_numeric' && action.column) {
-      lines.push(`df[${pyString(action.column)}] = pd.to_numeric(df[${pyString(action.column)}], errors="coerce")`)
+      lines.push(`df[${pyString(action.column)}] = df[${pyString(action.column)}].map(reviewed_number)`)
     } else if (action.type === 'normalize_date' && action.column) {
-      lines.push(`df[${pyString(action.column)}] = pd.to_datetime(df[${pyString(action.column)}], errors="coerce").dt.strftime("%Y-%m-%d")`)
+      lines.push(`df[${pyString(action.column)}] = df[${pyString(action.column)}].map(lambda value: reviewed_date(value, ${isDatetimeColumn(action.column) ? 'True' : 'False'}))`)
     } else if (action.type === 'remove_column' && action.column) {
       lines.push(`df = df.drop(columns=[${pyString(action.column)}])`)
     } else if (action.type === 'trim_strings') {
       lines.push('for col in df.select_dtypes(include="object").columns:')
-      lines.push('    df[col] = df[col].str.strip()')
+      lines.push('    df[col] = df[col].map(lambda value: value.strip() if isinstance(value, str) else value)')
     } else if (action.type === 'flag_outlier') {
       lines.push('# 仅记录异常值，不自动修改。请结合业务语境复核。')
     }

@@ -1,5 +1,5 @@
 import type { ChangeLogEntry, CleaningAction, DataRow, PreviewChange } from '../types'
-import { formatDate, hashRow, isMissing, numericValue, parseLooseDate } from './utils'
+import { formatDate, hashRow, isMissing, isDatetimeColumn, numericValue, parseLooseDate } from './utils'
 
 export function previewActions(rows: DataRow[], actions: CleaningAction[], limit = 40): PreviewChange[] {
   const changes: PreviewChange[] = []
@@ -36,7 +36,7 @@ export function previewActions(rows: DataRow[], actions: CleaningAction[], limit
         const raw = row[action.column!]
         if (isMissing(raw)) return
         const date = parseLooseDate(raw)
-        if (date) add(i, action.column!, raw, formatDate(date, /time/i.test(action.column!)))
+        if (date) add(i, action.column!, raw, formatDate(date, isDatetimeColumn(action.column!)))
       })
     } else if (action.type === 'remove_column' && action.column) {
       rows.slice(0, 8).forEach((row, i) => add(i, action.column!, row[action.column!], '（移除字段）'))
@@ -129,7 +129,7 @@ export function applyActions(rows: DataRow[], actions: CleaningAction[], startSt
 
     if (action.type === 'normalize_date' && action.column) {
       let affected = 0
-      const withTime = /time/i.test(action.column)
+      const withTime = isDatetimeColumn(action.column)
       nextRows = nextRows.map((row) => {
         const raw = row[action.column!]
         if (isMissing(raw)) return row
