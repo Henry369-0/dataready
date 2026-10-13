@@ -58,27 +58,40 @@ export function parseLooseDate(value: CellValue | undefined): Date | null {
   if (typeof value === 'number') {
     const excelEpoch = Date.UTC(1899, 11, 30)
     const d = new Date(excelEpoch + value * 86400000)
-    return Number.isNaN(d.getTime()) ? null : d
+    return Number.isNaN(d.getTime()) ? null : calendarDate(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds())
   }
   const raw = String(value).trim()
   if (!raw) return null
+  if (/^[+-]?[0-9]+(?:\.[0-9]+)?$/.test(raw)) return parseLooseDate(Number(raw))
 
   const ymd = raw.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/)
   if (ymd) {
     const [, y, m, d, hh = '0', mm = '0', ss = '0'] = ymd
-    const date = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss))
-    return Number.isNaN(date.getTime()) ? null : date
+    return calendarDate(Number(y), Number(m), Number(d), Number(hh), Number(mm), Number(ss))
   }
 
   const dmy = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/)
   if (dmy) {
     const [, d, m, y] = dmy
-    const date = new Date(Number(y), Number(m) - 1, Number(d))
-    return Number.isNaN(date.getTime()) ? null : date
+    return calendarDate(Number(y), Number(m), Number(d))
   }
 
+  const isoDate = raw.match(/^([0-9]{4})[/-]([0-9]{1,2})[/-]([0-9]{1,2})[ T]/i)
+  if (isoDate && !calendarDate(Number(isoDate[1]), Number(isoDate[2]), Number(isoDate[3]))) return null
   const parsed = new Date(raw)
   return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function calendarDate(year: number, month: number, day: number, hour = 0, minute = 0, second = 0): Date | null {
+  const date = new Date(0)
+  date.setFullYear(year, month - 1, day)
+  date.setHours(hour, minute, second, 0)
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+    && date.getHours() === hour && date.getMinutes() === minute && date.getSeconds() === second ? date : null
+}
+
+export function isDatetimeColumn(column: string): boolean {
+  return /time|时间|timestamp/i.test(column)
 }
 
 export function formatDate(date: Date, withTime = false): string {

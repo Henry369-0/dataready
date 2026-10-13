@@ -192,6 +192,12 @@ dataready/
 └── LICENSE
 ```
 
+## 验证改动
+
+运行 `npm ci`、`npm test` 与 `npm run check`。回归测试覆盖原值保留、错误 CSV、合法日期及清洗行为；CI 还会执行导出的 Python，与界面清洗结果比较。
+
+本地执行 Python 回放需先安装 `pandas openpyxl xlsxwriter`，并把 `DATAREADY_PYTHON` 设为 Python 可执行文件（例如 `python`）。未设置时会明确跳过 Python 回放用例。CSV 导入保留文本原值，数值转换在清洗方案中确认；生成脚本的 `input_path` 可改为实际 Excel 或 CSV 路径。
+
 ## 技术栈
 
 - React + TypeScript + Vite
